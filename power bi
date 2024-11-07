@@ -1,0 +1,42 @@
+async function embedPowerBIReport() {
+    const accessToken = 'EMBED_ACCESS_TOKEN';
+    const embedUrl = 'EMBED_URL';
+    const embedReportId = 'REPORT_ID';
+    const tokenType = 'Embed';  // Puedes cambiar a 'Aad' si usas autenticación de Azure AD
+
+    const models = window['powerbi-client'].models;
+    const config = {
+        type: 'report',
+        tokenType: tokenType === 'Aad' ? models.TokenType.Aad : models.TokenType.Embed,
+        accessToken: accessToken,
+        embedUrl: embedUrl,
+        id: embedReportId,
+        permissions: models.Permissions.All,
+        settings: {
+            panes: {
+                filters: { visible: true },
+                pageNavigation: { visible: true }
+            },
+            bars: {
+                statusBar: { visible: true }
+            }
+        }
+    };
+
+    const embedContainer = document.getElementById('embedContainer');
+    const report = powerbi.embed(embedContainer, config);
+
+    report.on("error", (event) => {
+        console.error("Error en Power BI:", event.detail);
+        alert("Ocurrió un error al cargar el reporte de Power BI. Revisa la consola para más detalles.");
+    });
+
+    try {
+        await new Promise((resolve) => report.on("loaded", resolve));
+        console.log("Reporte de Power BI cargado.");
+        await new Promise((resolve) => report.on("rendered", resolve));
+        console.log("Reporte de Power BI renderizado.");
+    } catch (error) {
+        console.error("Error en la carga/renderizado del reporte:", error);
+    }
+}
